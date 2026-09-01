@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.*
+*.md
+!.env.example
+Dockerfile
+.dockerignore
+prisma/dev.db
+prisma/migrations
