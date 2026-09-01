@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "wazend": {
+      "source": "ronnaldrangel/wazend-skills",
+      "sourceType": "github",
+      "skillPath": "skills/wazend/SKILL.md",
+      "computedHash": "a7ea734afa7bff91accc5adef7b31b77fd64800c74b93ac9172e5c0e1dbe3409"
+    }
+  }
+}

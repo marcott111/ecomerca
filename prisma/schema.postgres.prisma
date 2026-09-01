@@ -1,0 +1,84 @@
+// ECOMERCA - Esquema de PostgreSQL (producción)
+// Usa este archivo en producción. Genera/migra con:
+//   DATABASE_PROVIDER=postgresql npx prisma migrate dev --schema prisma/schema.postgres.prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MetodoRegistro {
+  whatsapp
+  email
+}
+
+enum Rol {
+  admin
+  vendedor
+  comprador
+}
+
+enum EstadoProducto {
+  pendiente
+  aprobado
+  rechazado
+}
+
+model Usuario {
+  id              String          @id @default(cuid())
+  nombre          String
+  metodoRegistro  MetodoRegistro
+  whatsapp        String?         @unique
+  email           String?         @unique
+  passwordHash    String?
+  verificado      Boolean         @default(false)
+  rol             Rol             @default(comprador)
+  puedeVender     Boolean         @default(false)
+  otpHash         String?
+  otpExpiracion   DateTime?
+  otpIntentos     Int             @default(0)
+  creadoEn        DateTime        @default(now())
+  productos       Producto[]
+  resenas         Resena[]
+}
+
+model Producto {
+  id            String          @id @default(cuid())
+  vendedorId    String
+  vendedor      Usuario         @relation(fields: [vendedorId], references: [id], onDelete: Cascade)
+  titulo        String
+  descripcion   String
+  precio        Float
+  categoria     String
+  ubicacion     String?
+  estado        EstadoProducto  @default(pendiente)
+  motivoRechazo String?
+  creadoEn      DateTime        @default(now())
+  imagenes      ImagenProducto[]
+  resenas       Resena[]
+}
+
+model ImagenProducto {
+  id         String   @id @default(cuid())
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  url        String
+  posicion   Int      @default(0)
+}
+
+model Resena {
+  id          String   @id @default(cuid())
+  productoId  String
+  producto    Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  compradorId String
+  comprador   Usuario  @relation(fields: [compradorId], references: [id], onDelete: Cascade)
+  calificacion Int
+  comentario  String?
+  creadoEn    DateTime @default(now())
+
+  @@unique([productoId, compradorId])
+}
