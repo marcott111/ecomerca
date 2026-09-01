@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { CATEGORIAS } from "@/lib/categorias";
+import { CATEGORIAS, MARCAS } from "@/lib/categorias";
 import ProductoCard from "@/components/producto-card";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ export default async function HomePage({
     },
   });
 
-  const marcas = ["🏆 Eco", "🌿 Natural", "🍯 Miel", "🥬 Orgánico", "✨ Premium", "🌾 Granos"];
+  const marcas = MARCAS;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -56,7 +56,7 @@ export default async function HomePage({
             type="text"
             name="q"
             defaultValue={q || ""}
-            placeholder="Buscar frutas, miel, cosmética natural..."
+            placeholder="Buscar cartón, madera, plástico reciclado, tela..."
             className="w-full rounded-full border border-border bg-card py-3 pl-11 pr-4 text-sm shadow-sm outline-none transition focus:border-eco-500 focus:ring-2 focus:ring-eco-500/20"
           />
         </div>
