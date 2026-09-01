@@ -14,8 +14,13 @@ El proyecto ya está preparado para producción:
 ## Paso 2: Crear el servidor de la app (Compute)
 1. En cloud.nexode.app ve a **Compute → Crear**.
 2. Sube / referencia la imagen Docker del proyecto (o ejecuta el contenedor desde el repo con el `Dockerfile` en la raíz).
-3. Expón el puerto **3000** (el contenedor escucha en `0.0.0.0:3000`).
-4. Inyecta las variables de entorno de `.env.production.example`, completando:
+3. **Importante:** al construir la imagen pasa la URL de tu base para que se creen las tablas:
+   ```
+   docker build --build-arg DATABASE_URL='postgresql://u_9c18a851:...@...:5432/db_cd253a94' -t ecomerca .
+   ```
+   El build ejecutará `prisma db push` automáticamente (crea las tablas `public.Usuario`, `public.Producto`, etc.). Necesita construir **dentro de la red de Nexode** o donde tu base sea alcanzable.
+4. Expón el puerto **3000** (el contenedor escucha en `0.0.0.0:3000`).
+5. Inyecta las variables de entorno de `.env.production.example`, completando:
    - `DATABASE_PROVIDER=postgresql`
    - `DATABASE_URL=<cadena del Paso 1>`
    - `AUTH_SECRET=<secreto robusto>`
@@ -23,25 +28,31 @@ El proyecto ya está preparado para producción:
    - `ADMIN_EMAIL` / `ADMIN_PASSWORD`
    - `NEXT_PUBLIC_APP_URL=<url final>`
 
-## Paso 3: Aplicar el esquema de la base de datos
-Ejecuta una vez contra la BD de producción (desde tu máquina o un job en el servidor):
+> Si el `db push` ya se hizo y quieres reconstruir sin reintentarlo, omite el `--build-arg`.
+
+> El **build** crea las tablas (`prisma db push`) y el **admin del panel** (`prisma/_seed-admin.ts`) automáticamente al pasar `--build-arg DATABASE_URL`. Solo es necesario una vez; para reconstruir sin reintentarlo, omite el `--build-arg`.
+
+## Paso 3: (Opcional) Aplicar esquema o cargar datos manualmente
+Si no usaste el `--build-arg` o quieres acciones manuales, desde un entorno que alcance la BD (el servidor Nexode o un túnel):
 
 ```bash
-# Genera el cliente con el esquema Postgres de produccion
-npx prisma generate --schema prisma/schema.postgres.prisma
-
-# Aplica las migraciones al esquema (sin servidor dev)
+# Crea las tablas en la BD de produccion
 DATABASE_PROVIDER=postgresql \
 DATABASE_URL='<cadena del Paso 1>' \
 npx prisma db push --schema prisma/schema.postgres.prisma
 
-# Crea el admin y datos demo
+# Solo asegura el admin del panel (sin datos demo)
+DATABASE_PROVIDER=postgresql \
+DATABASE_URL='<cadena del Paso 1>' \
+npx tsx prisma/_seed-admin.ts
+
+# (Opcional) Cargar admin + vendedor + comprador + productos demo
 DATABASE_PROVIDER=postgresql \
 DATABASE_URL='<cadena del Paso 1>' \
 npm run db:seed
 ```
 
-> `db push` crea las tablas desde el esquema. Si prefieres migraciones versionadas, usa `prisma migrate deploy`.
+> `db push` crea las tablas desde el esquema (los modelos son idénticos en SQLite/Postgres). Si prefieres migraciones versionadas, usa `prisma migrate deploy`.
 
 ## Paso 4: Dominio / subdominio
 1. En Nexode → **Domains → Registrar** un subdominio (ej. `ecomerca.<tu-sub>.<base>.nexode.app`).

@@ -20,6 +20,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_PROVIDER=postgresql
 RUN npm run build
 
+# Crea las tablas del esquema en la base PostgreSQL de produccion.
+# Se ejecuta en el build porque el runner "standalone" no incluye la CLI de Prisma.
+# Pasa la URL de la base al construir: --build-arg DATABASE_URL='postgresql://...'
+ARG DATABASE_URL
+RUN if [ -n "$DATABASE_URL" ]; then \
+      npx prisma db push --schema prisma/schema.postgres.prisma && \
+      npx tsx prisma/_seed-admin.ts; \
+    fi
+
 # ---------- runner ----------
 FROM base AS runner
 WORKDIR /app
